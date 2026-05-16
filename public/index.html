@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anon Chat</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #2d1b3d 100%);
+    color: #eee; min-height: 100vh; display: flex; flex-direction: column;
+  }
+  .container { max-width: 500px; margin: 0 auto; width: 100%; flex: 1; display: flex; flex-direction: column; padding: 20px; }
+  .screen { display: none; flex: 1; flex-direction: column; }
+  .screen.active { display: flex; }
+  h1 { text-align: center; margin-bottom: 8px; font-size: 32px; color: #ff6b9d; }
+  h2 { text-align: center; margin-bottom: 12px; }
+  .subtitle { text-align: center; color: #aaa; margin-bottom: 28px; font-size: 14px; }
+  .label { font-size: 13px; color: #aaa; margin-bottom: 8px; margin-top: 20px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .gender-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .gender-btn { background: #2a2a3e; border: 2px solid transparent; color: #eee; padding: 28px 16px; border-radius: 14px; font-size: 18px; cursor: pointer; transition: all 0.2s; }
+  .gender-btn:hover { background: #33334a; }
+  .gender-btn.selected { border-color: #ff6b9d; background: #3a2a3e; box-shadow: 0 0 0 4px rgba(255,107,157,0.15); }
+  input[type="text"] { width: 100%; background: #2a2a3e; border: 1px solid #444; color: #eee; padding: 14px; border-radius: 10px; font-size: 16px; }
+  input[type="text"]:focus { outline: none; border-color: #ff6b9d; }
+  .city-wrap { position: relative; }
+  .suggestions { position: absolute; top: 100%; left: 0; right: 0; background: #2a2a3e; border: 1px solid #444; border-top: none; max-height: 220px; overflow-y: auto; border-radius: 0 0 10px 10px; z-index: 10; display: none; }
+  .suggestion { padding: 12px 14px; cursor: pointer; border-bottom: 1px solid #333; font-size: 14px; }
+  .suggestion:last-child { border-bottom: none; }
+  .suggestion:hover { background: #33334a; }
+  .btn-primary { background: #ff6b9d; color: white; border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 28px; width: 100%; transition: background 0.2s; }
+  .btn-primary:hover:not(:disabled) { background: #ff5a8e; }
+  .btn-primary:disabled { background: #555; cursor: not-allowed; opacity: 0.6; }
+  .btn-secondary { background: #2a2a3e; color: #eee; border: 1px solid #444; padding: 14px; border-radius: 12px; font-size: 15px; cursor: pointer; }
+  .btn-secondary:hover { background: #33334a; }
+  .btn-danger { background: #d9534f; color: white; border: none; padding: 14px; border-radius: 12px; font-size: 15px; cursor: pointer; }
+  .btn-danger:hover { background: #c9302c; }
+  .spinner { width: 60px; height: 60px; border: 4px solid #2a2a3e; border-top-color: #ff6b9d; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 24px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .chat-wrap { flex: 1; display: flex; flex-direction: column; }
+  .chat-header { background: #2a2a3e; padding: 14px 18px; border-radius: 12px 12px 0 0; display: flex; justify-content: space-between; align-items: center; }
+  .chat-header .who { font-weight: 600; }
+  .chat-header .city { font-size: 12px; color: #aaa; }
+  .timer { font-size: 18px; font-weight: 700; color: #ff6b9d; font-variant-numeric: tabular-nums; }
+  .timer.warning { color: #f0ad4e; animation: pulse 1s infinite; }
+  @keyframes pulse { 50% { opacity: 0.5; } }
+  .chat-messages { flex: 1; overflow-y: auto; padding: 16px; background: #20203a; min-height: 320px; display: flex; flex-direction: column; gap: 6px; }
+  .msg { max-width: 75%; padding: 10px 14px; border-radius: 16px; word-wrap: break-word; line-height: 1.4; }
+  .msg.me { background: #ff6b9d; margin-left: auto; border-bottom-right-radius: 4px; }
+  .msg.them { background: #3a3a55; border-bottom-left-radius: 4px; }
+  .msg.system { background: transparent; color: #888; text-align: center; max-width: 100%; font-size: 13px; font-style: italic; padding: 4px; align-self: center; }
+  .chat-input { display: flex; gap: 8px; padding: 12px; background: #2a2a3e; border-radius: 0 0 12px 12px; }
+  .chat-input input { flex: 1; padding: 12px; }
+  .chat-input button { background: #ff6b9d; color: white; border: none; padding: 0 22px; border-radius: 10px; cursor: pointer; font-weight: 600; }
+  .chat-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+  .decision-box { background: #2a2a3e; padding: 22px; border-radius: 12px; text-align: center; margin-top: 12px; border: 1px solid #ff6b9d; }
+  .decision-box h3 { margin-bottom: 8px; }
+  .decision-box p { color: #aaa; font-size: 14px; margin-bottom: 16px; }
+  .decision-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .decision-btns .btn-primary { margin: 0; }
+  .ended-box { text-align: center; padding: 40px 20px; margin: auto; }
+  .ended-box h2 { margin-bottom: 12px; }
+  .quota { color: #aaa; font-size: 13px; text-align: center; margin-top: 12px; }
+  .home-link { margin-top: 12px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- LANDING -->
+  <div id="screen-landing" class="screen active">
+    <h1>💬 Anon Chat</h1>
+    <p class="subtitle">Anonymous 1-minute chats with a stranger</p>
+
+    <div class="label">I am</div>
+    <div class="gender-options">
+      <button class="gender-btn" data-gender="male">👨 Male</button>
+      <button class="gender-btn" data-gender="female">👩 Female</button>
+    </div>
+
+    <button class="btn-primary" id="start-btn" disabled>Find a match</button>
+    <p class="quota" id="quota-info"></p>
+  </div>
+
+  <!-- SEARCHING -->
+  <div id="screen-searching" class="screen">
+    <div style="margin: auto; text-align: center;">
+      <div class="spinner"></div>
+      <h2>Finding someone...</h2>
+      <p class="subtitle" style="margin-top: 8px;">Looking for an available stranger</p>
+      <button class="btn-secondary" id="cancel-btn" style="margin-top: 24px;">Cancel</button>
+    </div>
+  </div>
+
+  <!-- CHAT -->
+  <div id="screen-chat" class="screen">
+    <div class="chat-wrap">
+      <div class="chat-header">
+        <div class="who">👤 Stranger</div>
+        <span class="timer" id="timer">01:00</span>
+      </div>
+      <div class="chat-messages" id="messages"></div>
+      <div class="chat-input">
+        <input type="text" id="msg-input" placeholder="Say hi..." maxlength="500">
+        <button id="send-btn">Send</button>
+      </div>
+    </div>
+    <div class="chat-actions">
+      <button class="btn-secondary" id="skip-btn">⏭️ Skip</button>
+      <button class="btn-danger" id="report-btn">🚩 Report</button>
+    </div>
+
+    <div class="decision-box" id="decision-box" style="display: none;">
+      <h3>⏰ Time's up!</h3>
+      <p>Both must tap Continue to keep chatting</p>
+      <div class="decision-btns">
+        <button class="btn-primary" id="continue-btn">Continue</button>
+        <button class="btn-secondary" id="decision-skip-btn">Skip</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ENDED -->
+  <div id="screen-ended" class="screen">
+    <div class="ended-box">
+      <h2 id="ended-title">Chat ended</h2>
+      <p class="subtitle" id="ended-msg"></p>
+      <button class="btn-primary" id="next-btn">Find next match</button>
+      <button class="btn-secondary home-link" id="home-btn" style="width: 100%;">Back to home</button>
+    </div>
+  </div>
+
+  <!-- PAYWALL -->
+  <div id="screen-paywall" class="screen">
+    <div style="margin: auto; padding: 20px 0; text-align: center; width: 100%;">
+      <h2>💎 Out of matches</h2>
+      <p class="subtitle" style="margin-bottom: 20px;">Pay <strong>₹<span id="pay-price">49</span></strong> via UPI to unlock <span id="pack-size">10</span> more matches</p>
+
+      <div style="background:#fff;display:inline-block;padding:10px;border-radius:14px;margin-bottom:16px;">
+        <img id="qr-img" alt="UPI QR" width="220" height="220" style="display:block;">
+      </div>
+
+      <div style="background:#2a2a3e;border-radius:10px;padding:12px;margin-bottom:14px;font-size:13px;color:#aaa;">
+        UPI ID: <strong id="upi-id" style="color:#eee;user-select:all;">--</strong>
+      </div>
+
+      <a id="upi-link" class="btn-primary" style="display:block;text-decoration:none;text-align:center;margin-top:0;">📱 Pay via UPI app</a>
+
+      <p class="label" style="margin-top:24px;text-align:left;">After paying, paste your UTR / transaction ID</p>
+      <input type="text" id="utr-input" placeholder="e.g. 412345678901" autocomplete="off" maxlength="30">
+      <button class="btn-primary" id="claim-btn">Activate matches</button>
+      <p id="claim-error" style="color:#f0ad4e;margin-top:8px;font-size:13px;min-height:18px;"></p>
+
+      <button class="btn-secondary home-link" id="paywall-home-btn" style="width:100%;margin-top:8px;">Back to home</button>
+    </div>
+  </div>
+
+  <!-- BLOCKED -->
+  <div id="screen-blocked" class="screen">
+    <div class="ended-box">
+      <h2>🚫 Blocked</h2>
+      <p class="subtitle" id="blocked-reason">You have been temporarily blocked.</p>
+    </div>
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  // Persistent anonymous ID
+  let userId = localStorage.getItem('anonUserId');
+  if (!userId) {
+    userId = (crypto.randomUUID ? crypto.randomUUID() : 'u-' + Math.random().toString(36).slice(2));
+    localStorage.setItem('anonUserId', userId);
+  }
+
+  let selectedGender = null;
+  let socket = null;
+  let timerInterval = null;
+  let timeLeft = 60;
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  // Gender
+  document.querySelectorAll('.gender-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.gender-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedGender = btn.dataset.gender;
+      updateStartButton();
+    });
+  });
+
+  function updateStartButton() {
+    document.getElementById('start-btn').disabled = !selectedGender;
+  }
+
+  document.getElementById('start-btn').addEventListener('click', start);
+
+  function start() {
+    connectSocket();
+    socket.emit('register', {
+      userId,
+      gender: selectedGender,
+    });
+    showScreen('screen-searching');
+  }
+
+  function connectSocket() {
+    if (socket && socket.connected) return;
+    socket = io();
+
+    socket.on('searching', () => showScreen('screen-searching'));
+
+    socket.on('matched', (data) => {
+      document.getElementById('messages').innerHTML = '';
+      document.getElementById('decision-box').style.display = 'none';
+      document.getElementById('continue-btn').textContent = 'Continue';
+      document.getElementById('continue-btn').disabled = false;
+      addSystemMsg('You are now connected. Say hi! 👋');
+      startTimer(Math.floor(data.duration / 1000));
+      showScreen('screen-chat');
+    });
+
+    socket.on('message', (m) => addMsg(m.from, m.text));
+
+    socket.on('decision-time', () => {
+      stopTimer();
+      document.getElementById('timer').textContent = '00:00';
+      document.getElementById('decision-box').style.display = 'block';
+      addSystemMsg("⏰ Time's up! Both must tap Continue to keep chatting.");
+    });
+
+    socket.on('continue-pending', () => {
+      const btn = document.getElementById('continue-btn');
+      btn.textContent = 'Waiting for them...';
+      btn.disabled = true;
+    });
+
+    socket.on('extended', () => {
+      document.getElementById('decision-box').style.display = 'none';
+      const t = document.getElementById('timer');
+      t.textContent = '∞';
+      t.classList.remove('warning');
+      addSystemMsg('🎉 Both agreed to continue! Chat freely.');
+    });
+
+    socket.on('session-ended', (d) => {
+      stopTimer();
+      const titles = {
+        skipped: 'Chat ended',
+        reported: 'Chat ended',
+        'time-up': 'Time ran out',
+        disconnected: 'Stranger left',
+      };
+      const msgs = {
+        skipped: 'One of you tapped skip.',
+        reported: 'Report submitted.',
+        'time-up': 'No one chose to continue.',
+        disconnected: 'They disconnected.',
+      };
+      document.getElementById('ended-title').textContent = titles[d.reason] || 'Chat ended';
+      document.getElementById('ended-msg').textContent = msgs[d.reason] || '';
+      showScreen('screen-ended');
+    });
+
+    socket.on('paywall', async (info) => {
+      if (info?.packSize) document.getElementById('pack-size').textContent = info.packSize;
+      if (info?.priceInr) document.getElementById('pay-price').textContent = info.priceInr;
+      try {
+        const pay = await fetch('/api/payment-info').then(r => r.json());
+        document.getElementById('qr-img').src = pay.qrUrl;
+        document.getElementById('upi-id').textContent = pay.upiId;
+        document.getElementById('upi-link').href = pay.upiLink;
+        document.getElementById('pay-price').textContent = pay.priceInr;
+        document.getElementById('pack-size').textContent = pay.packSize;
+      } catch (e) { console.error(e); }
+      document.getElementById('utr-input').value = '';
+      document.getElementById('claim-error').textContent = '';
+      showScreen('screen-paywall');
+    });
+
+    socket.on('blocked', (d) => {
+      document.getElementById('blocked-reason').textContent = d?.reason || 'You have been blocked.';
+      showScreen('screen-blocked');
+    });
+
+    socket.on('match-quota', (q) => {
+      const parts = [`${q.free}/${q.freeMax} free matches today`];
+      if (q.paid > 0) parts.push(`+ ${q.paid} paid`);
+      document.getElementById('quota-info').textContent = parts.join(' ');
+    });
+
+    socket.on('error-msg', (m) => alert(m));
+  }
+
+  // Timer
+  function startTimer(seconds) {
+    timeLeft = seconds;
+    updateTimerDisplay();
+    stopTimer();
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      updateTimerDisplay();
+      if (timeLeft <= 0) stopTimer();
+    }, 1000);
+  }
+  function stopTimer() {
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  }
+  function updateTimerDisplay() {
+    const t = document.getElementById('timer');
+    const m = Math.floor(Math.max(0, timeLeft) / 60).toString().padStart(2, '0');
+    const s = (Math.max(0, timeLeft) % 60).toString().padStart(2, '0');
+    t.textContent = `${m}:${s}`;
+    if (timeLeft <= 10 && timeLeft > 0) t.classList.add('warning');
+    else t.classList.remove('warning');
+  }
+
+  function addMsg(from, text) {
+    const div = document.createElement('div');
+    div.className = `msg ${from}`;
+    div.textContent = text;
+    const m = document.getElementById('messages');
+    m.appendChild(div);
+    m.scrollTop = m.scrollHeight;
+  }
+  function addSystemMsg(text) {
+    const div = document.createElement('div');
+    div.className = 'msg system';
+    div.textContent = text;
+    const m = document.getElementById('messages');
+    m.appendChild(div);
+    m.scrollTop = m.scrollHeight;
+  }
+
+  // Send
+  document.getElementById('send-btn').addEventListener('click', sendMessage);
+  document.getElementById('msg-input').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendMessage();
+  });
+  function sendMessage() {
+    const inp = document.getElementById('msg-input');
+    const text = inp.value.trim();
+    if (!text || !socket) return;
+    socket.emit('message', text);
+    inp.value = '';
+  }
+
+  // Action buttons
+  document.getElementById('skip-btn').addEventListener('click', () => socket?.emit('skip'));
+  document.getElementById('decision-skip-btn').addEventListener('click', () => socket?.emit('skip'));
+  document.getElementById('continue-btn').addEventListener('click', () => socket?.emit('continue'));
+  document.getElementById('report-btn').addEventListener('click', () => {
+    if (confirm('Report this user for abusive behavior?')) socket?.emit('report');
+  });
+  document.getElementById('cancel-btn').addEventListener('click', () => {
+    socket?.disconnect();
+    socket = null;
+    showScreen('screen-landing');
+  });
+  document.getElementById('next-btn').addEventListener('click', () => {
+    if (!socket || !socket.connected) connectSocket();
+    socket.emit('next');
+  });
+  document.getElementById('home-btn').addEventListener('click', () => {
+    socket?.disconnect();
+    socket = null;
+    showScreen('screen-landing');
+  });
+
+  document.getElementById('paywall-home-btn').addEventListener('click', () => {
+    socket?.disconnect();
+    socket = null;
+    showScreen('screen-landing');
+  });
+
+  document.getElementById('claim-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('claim-btn');
+    const errEl = document.getElementById('claim-error');
+    const utr = document.getElementById('utr-input').value.trim();
+    errEl.textContent = '';
+    if (utr.length < 8) {
+      errEl.textContent = 'Please paste the full UTR / transaction ID.';
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = 'Activating...';
+    try {
+      const res = await fetch('/api/claim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, utr }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Could not activate');
+      document.getElementById('quota-info').textContent =
+        `0/5 free matches today + ${data.paidMatches} paid`;
+      btn.disabled = false;
+      btn.textContent = 'Activate matches';
+      if (!socket || !socket.connected) connectSocket();
+      socket.emit('next');
+    } catch (e) {
+      errEl.textContent = e.message || 'Could not activate';
+      btn.disabled = false;
+      btn.textContent = 'Activate matches';
+    }
+  });
+</script>
+</body>
+</html>
