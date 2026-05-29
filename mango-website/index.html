@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>All Kind of Mango — Premium Mangoes Delivered Fresh</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --yellow: #FFB627;
+    --orange: #FF6B35;
+    --dark-orange: #E85D04;
+    --green: #2D6A4F;
+    --light-green: #52B788;
+    --cream: #FFF8E7;
+    --dark: #1A0A00;
+    --text: #3D2B00;
+    --text-light: #7A5C2E;
+    --shadow: 0 20px 60px rgba(255,107,53,0.15);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    overflow-x: hidden;
+  }
+
+  /* ── NAVBAR ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(255, 248, 231, 0.9);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255,182,39,0.2);
+    padding: 0 24px;
+  }
+  .nav-inner {
+    max-width: 1100px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 64px;
+  }
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px; font-weight: 900;
+    color: var(--dark-orange);
+    text-decoration: none;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .logo span { font-size: 28px; }
+  .nav-links { display: flex; gap: 32px; list-style: none; }
+  .nav-links a { color: var(--text); text-decoration: none; font-weight: 500; font-size: 15px; transition: color 0.2s; }
+  .nav-links a:hover { color: var(--orange); }
+  .nav-cta {
+    background: var(--orange); color: white;
+    border: none; padding: 10px 22px;
+    border-radius: 50px; font-weight: 600; font-size: 14px;
+    cursor: pointer; transition: all 0.2s;
+    text-decoration: none;
+  }
+  .nav-cta:hover { background: var(--dark-orange); transform: translateY(-1px); }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #FFF3D0 0%, #FFE0A3 40%, #FFCB6B 100%);
+    display: flex; align-items: center;
+    position: relative; overflow: hidden;
+    padding: 100px 24px 60px;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 70% 50%, rgba(255,107,53,0.15) 0%, transparent 65%);
+  }
+  .hero-inner {
+    max-width: 1100px; margin: 0 auto; width: 100%;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;
+    position: relative; z-index: 1;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,107,53,0.15); border: 1px solid rgba(255,107,53,0.3);
+    color: var(--dark-orange); border-radius: 50px;
+    padding: 6px 16px; font-size: 13px; font-weight: 600;
+    margin-bottom: 24px;
+  }
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(40px, 5vw, 68px);
+    font-weight: 900; line-height: 1.1;
+    color: var(--dark);
+    margin-bottom: 20px;
+  }
+  .hero h1 em { color: var(--dark-orange); font-style: normal; }
+  .hero p {
+    font-size: 18px; color: var(--text-light);
+    line-height: 1.7; margin-bottom: 36px;
+    max-width: 460px;
+  }
+  .hero-btns { display: flex; gap: 14px; flex-wrap: wrap; }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--orange), var(--dark-orange));
+    color: white; border: none; padding: 16px 32px;
+    border-radius: 50px; font-size: 16px; font-weight: 600;
+    cursor: pointer; text-decoration: none;
+    box-shadow: 0 8px 30px rgba(232,93,4,0.35);
+    transition: all 0.25s;
+    display: inline-block;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(232,93,4,0.45); }
+  .btn-outline {
+    background: transparent; color: var(--dark-orange);
+    border: 2px solid var(--dark-orange); padding: 14px 28px;
+    border-radius: 50px; font-size: 16px; font-weight: 600;
+    cursor: pointer; text-decoration: none;
+    transition: all 0.25s; display: inline-block;
+  }
+  .btn-outline:hover { background: var(--dark-orange); color: white; transform: translateY(-2px); }
+  .hero-visual {
+    position: relative; display: flex; justify-content: center; align-items: center;
+  }
+  .mango-emoji-big {
+    font-size: clamp(120px, 15vw, 200px);
+    filter: drop-shadow(0 20px 40px rgba(255,107,53,0.3));
+    animation: float 3s ease-in-out infinite;
+    display: block; text-align: center;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-18px); }
+  }
+  .hero-floaters {
+    position: absolute; inset: 0; pointer-events: none;
+  }
+  .floater {
+    position: absolute; font-size: 40px;
+    animation: floatSlow 4s ease-in-out infinite;
+    opacity: 0.7;
+  }
+  .floater:nth-child(1) { top: 10%; left: 5%; animation-delay: 0s; }
+  .floater:nth-child(2) { top: 60%; left: 80%; animation-delay: 1s; font-size: 28px; }
+  .floater:nth-child(3) { top: 80%; left: 15%; animation-delay: 0.5s; font-size: 32px; }
+  .floater:nth-child(4) { top: 15%; left: 85%; animation-delay: 1.5s; font-size: 36px; }
+  @keyframes floatSlow {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-12px) rotate(10deg); }
+  }
+  .hero-stats {
+    display: flex; gap: 32px; margin-top: 40px; flex-wrap: wrap;
+  }
+  .stat { }
+  .stat-num { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: var(--dark-orange); }
+  .stat-label { font-size: 13px; color: var(--text-light); margin-top: 2px; }
+
+  /* ── SECTION COMMON ── */
+  section { padding: 80px 24px; }
+  .section-label {
+    text-align: center; font-size: 13px; font-weight: 600;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--orange); margin-bottom: 12px;
+  }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 4vw, 44px); font-weight: 700;
+    text-align: center; color: var(--dark);
+    margin-bottom: 16px;
+  }
+  .section-sub {
+    text-align: center; color: var(--text-light);
+    font-size: 17px; max-width: 540px;
+    margin: 0 auto 56px;
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+
+  /* ── VARIETIES ── */
+  #varieties { background: white; }
+  .varieties-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 28px;
+  }
+  .variety-card {
+    background: var(--cream);
+    border: 1px solid rgba(255,182,39,0.25);
+    border-radius: 24px; overflow: hidden;
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+  .variety-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 24px 60px rgba(255,107,53,0.15);
+    border-color: rgba(255,107,53,0.3);
+  }
+  .variety-img {
+    height: 180px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 80px;
+    background: linear-gradient(135deg, #FFF3D0, #FFE0A3);
+  }
+  .variety-body { padding: 24px; }
+  .variety-name { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--dark); margin-bottom: 8px; }
+  .variety-origin { font-size: 12px; color: var(--orange); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+  .variety-desc { font-size: 14px; color: var(--text-light); line-height: 1.6; margin-bottom: 16px; }
+  .variety-price { font-size: 20px; font-weight: 700; color: var(--dark-orange); margin-bottom: 4px; }
+  .variety-unit { font-size: 12px; color: var(--text-light); }
+  .add-btn {
+    width: 100%; margin-top: 16px;
+    background: linear-gradient(135deg, var(--yellow), var(--orange));
+    color: white; border: none; padding: 12px;
+    border-radius: 12px; font-weight: 600; font-size: 14px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .add-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+  /* ── ABOUT ── */
+  #about { background: linear-gradient(135deg, #1A0A00, #3D2000); color: white; }
+  #about .section-title { color: white; }
+  #about .section-sub { color: rgba(255,255,255,0.65); }
+  .about-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;
+    margin-top: 0;
+  }
+  .about-visual {
+    background: linear-gradient(135deg, rgba(255,182,39,0.15), rgba(255,107,53,0.15));
+    border: 1px solid rgba(255,182,39,0.2);
+    border-radius: 28px; padding: 48px;
+    text-align: center;
+  }
+  .about-emoji { font-size: 100px; display: block; margin-bottom: 20px; }
+  .about-tagline { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--yellow); font-style: italic; }
+  .about-content h3 { font-family: 'Playfair Display', serif; font-size: 32px; color: white; margin-bottom: 20px; }
+  .about-content p { color: rgba(255,255,255,0.7); font-size: 16px; line-height: 1.8; margin-bottom: 20px; }
+  .about-features { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 28px; }
+  .about-feat {
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px; padding: 18px;
+  }
+  .about-feat-icon { font-size: 28px; margin-bottom: 8px; }
+  .about-feat-title { font-weight: 600; color: white; font-size: 14px; margin-bottom: 4px; }
+  .about-feat-desc { font-size: 12px; color: rgba(255,255,255,0.55); }
+
+  /* ── DELIVERY ── */
+  #delivery { background: var(--cream); }
+  .delivery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .delivery-card {
+    background: white; border: 1px solid rgba(255,182,39,0.2);
+    border-radius: 20px; padding: 32px;
+    text-align: center; transition: all 0.25s;
+  }
+  .delivery-card:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+  .delivery-icon { font-size: 48px; margin-bottom: 16px; }
+  .delivery-card h3 { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--dark); margin-bottom: 10px; }
+  .delivery-card p { color: var(--text-light); font-size: 14px; line-height: 1.6; }
+  .delivery-tag {
+    display: inline-block; margin-top: 14px;
+    background: linear-gradient(135deg, var(--yellow), var(--orange));
+    color: white; border-radius: 50px;
+    padding: 5px 14px; font-size: 12px; font-weight: 600;
+  }
+
+  /* ── ORDER FORM ── */
+  #order { background: white; }
+  .order-wrap {
+    max-width: 680px; margin: 0 auto;
+    background: linear-gradient(135deg, #FFF3D0, #FFE8C2);
+    border: 1px solid rgba(255,182,39,0.3);
+    border-radius: 28px; padding: 48px;
+    box-shadow: 0 30px 80px rgba(255,107,53,0.12);
+  }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .form-group { display: flex; flex-direction: column; gap: 8px; }
+  .form-group.full { grid-column: 1 / -1; }
+  label { font-weight: 600; font-size: 13px; color: var(--text); text-transform: uppercase; letter-spacing: 0.5px; }
+  input, select, textarea {
+    background: white; border: 1.5px solid rgba(255,182,39,0.3);
+    color: var(--dark); padding: 14px 16px;
+    border-radius: 12px; font-size: 15px; font-family: 'Inter', sans-serif;
+    transition: border-color 0.2s;
+    appearance: none; -webkit-appearance: none;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none; border-color: var(--orange);
+    box-shadow: 0 0 0 3px rgba(255,107,53,0.12);
+  }
+  textarea { resize: vertical; min-height: 90px; }
+  .mango-select { position: relative; }
+  .mango-select select { width: 100%; cursor: pointer; }
+  .qty-row { display: flex; gap: 12px; }
+  .qty-row select { flex: 1; }
+  .submit-btn {
+    width: 100%; margin-top: 10px;
+    background: linear-gradient(135deg, var(--orange), var(--dark-orange));
+    color: white; border: none; padding: 18px;
+    border-radius: 14px; font-size: 16px; font-weight: 700;
+    cursor: pointer; transition: all 0.25s; letter-spacing: 0.3px;
+    box-shadow: 0 8px 30px rgba(232,93,4,0.3);
+  }
+  .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(232,93,4,0.45); }
+  .whatsapp-hint {
+    text-align: center; margin-top: 14px;
+    color: var(--text-light); font-size: 13px;
+  }
+  .whatsapp-hint strong { color: #25D366; }
+  #form-success {
+    display: none;
+    text-align: center; padding: 40px 20px;
+  }
+  #form-success .success-icon { font-size: 64px; margin-bottom: 16px; }
+  #form-success h3 { font-family: 'Playfair Display', serif; font-size: 28px; color: var(--dark); margin-bottom: 10px; }
+  #form-success p { color: var(--text-light); font-size: 16px; }
+
+  /* ── TESTIMONIALS ── */
+  #reviews { background: var(--cream); }
+  .reviews-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .review-card {
+    background: white; border-radius: 20px;
+    padding: 28px; border: 1px solid rgba(255,182,39,0.2);
+  }
+  .stars { color: var(--yellow); font-size: 18px; margin-bottom: 12px; }
+  .review-text { color: var(--text-light); font-size: 15px; line-height: 1.7; margin-bottom: 18px; font-style: italic; }
+  .reviewer { display: flex; align-items: center; gap: 12px; }
+  .reviewer-avatar { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, var(--yellow), var(--orange)); display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  .reviewer-name { font-weight: 600; font-size: 14px; color: var(--dark); }
+  .reviewer-loc { font-size: 12px; color: var(--text-light); }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--dark); color: rgba(255,255,255,0.6);
+    padding: 48px 24px; text-align: center;
+  }
+  .footer-logo { font-family: 'Playfair Display', serif; font-size: 28px; color: var(--yellow); margin-bottom: 12px; }
+  .footer-tagline { font-size: 14px; margin-bottom: 24px; }
+  .footer-links { display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; margin-bottom: 32px; }
+  .footer-links a { color: rgba(255,255,255,0.5); text-decoration: none; font-size: 14px; transition: color 0.2s; }
+  .footer-links a:hover { color: var(--yellow); }
+  .footer-copy { font-size: 13px; color: rgba(255,255,255,0.35); }
+
+  /* ── SCROLL ANIMATION ── */
+  .reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .nav-links { display: none; }
+    .hero-inner { grid-template-columns: 1fr; text-align: center; gap: 40px; }
+    .hero-visual { order: -1; }
+    .hero p { margin: 0 auto 36px; }
+    .hero-btns { justify-content: center; }
+    .hero-stats { justify-content: center; }
+    .about-grid { grid-template-columns: 1fr; }
+    .delivery-grid { grid-template-columns: 1fr; }
+    .reviews-grid { grid-template-columns: 1fr; }
+    .form-grid { grid-template-columns: 1fr; }
+    .about-features { grid-template-columns: 1fr; }
+    .order-wrap { padding: 28px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+  <div class="nav-inner">
+    <a class="logo" href="#"><span>🥭</span> All Kind of Mango</a>
+    <ul class="nav-links">
+      <li><a href="#varieties">Varieties</a></li>
+      <li><a href="#about">Our Farm</a></li>
+      <li><a href="#delivery">Delivery</a></li>
+      <li><a href="#reviews">Reviews</a></li>
+    </ul>
+    <a class="nav-cta" href="#order">Order Now</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="hero-floaters">
+    <span class="floater">🌿</span>
+    <span class="floater">✨</span>
+    <span class="floater">🌱</span>
+    <span class="floater">🍃</span>
+  </div>
+  <div class="hero-inner">
+    <div class="hero-content">
+      <div class="hero-badge">🌟 100% Natural &amp; Farm-Fresh</div>
+      <h1>Every Mango.<br><em>Every Season.</em><br>Delivered Fresh.</h1>
+      <p>From Alphonso to Kesar, Dasheri to Totapuri — we bring you the finest mangoes from farms across India, delivered right to your doorstep.</p>
+      <div class="hero-btns">
+        <a class="btn-primary" href="#order">🛒 Order Now</a>
+        <a class="btn-outline" href="#varieties">Explore Varieties</a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat">
+          <div class="stat-num">20+</div>
+          <div class="stat-label">Mango varieties</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">5K+</div>
+          <div class="stat-label">Happy customers</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">10+</div>
+          <div class="stat-label">States served</div>
+        </div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <span class="mango-emoji-big">🥭</span>
+    </div>
+  </div>
+</section>
+
+<!-- VARIETIES -->
+<section id="varieties">
+  <div class="container">
+    <p class="section-label">Our Collection</p>
+    <h2 class="section-title">All Kinds of Mangoes</h2>
+    <p class="section-sub">Handpicked from the best farms across India. Every variety selected for taste, texture, and freshness.</p>
+    <div class="varieties-grid">
+
+      <div class="variety-card reveal">
+        <div class="variety-img">🥭</div>
+        <div class="variety-body">
+          <div class="variety-origin">Ratnagiri, Maharashtra</div>
+          <div class="variety-name">Alphonso (Hapus)</div>
+          <p class="variety-desc">The king of mangoes — deep orange, fibre-free, intensely sweet with a rich aroma. Season: April–June.</p>
+          <div class="variety-price">₹599 <span class="variety-unit">/ dozen</span></div>
+          <button class="add-btn" onclick="selectVariety('Alphonso (Hapus)')">🛒 Add to Order</button>
+        </div>
+      </div>
+
+      <div class="variety-card reveal">
+        <div class="variety-img">🟡</div>
+        <div class="variety-body">
+          <div class="variety-origin">Saurashtra, Gujarat</div>
+          <div class="variety-name">Kesar</div>
+          <p class="variety-desc">Named for its saffron-coloured pulp. Sweet, fragrant, and uniquely flavoured. Perfect for juices.</p>
+          <div class="variety-price">₹499 <span class="variety-unit">/ dozen</span></div>
+          <button class="add-btn" onclick="selectVariety('Kesar')">🛒 Add to Order</button>
+        </div>
+      </div>
+
+      <div class="variety-card reveal">
+        <div class="variety-img">🌿</div>
+        <div class="variety-body">
+          <div class="variety-origin">Uttar Pradesh</div>
+          <div class="variety-name">Dasheri</div>
+          <p class="variety-desc">Elongated and golden yellow. One of North India's most loved mangoes — sweet with a distinct flavour.</p>
+          <div class="variety-price">₹349 <span class="variety-unit">/ dozen</span></div>
+          <button class="add-btn" onclick="selectVariety('Dasheri')">🛒 Add to Order</button>
+        </div>
+      </div>
+
+      <div class="variety-card reveal">
+        <div class="variety-img">🍋</div>
+        <div class="variety-body">
+          <div class="variety-origin">Andhra Pradesh &amp; Tamil Nadu</div>
+          <div class="variety-name">Totapuri</div>
+          <p class="variety-desc">Parrot-beak shaped and mildly sweet. Great raw or ripe, widely used in pickles and chutneys.</p>
+          <div class="variety-price">₹249 <span class="variety-unit">/ dozen</span></div>
+          <button class="add-btn" onclick="selectVariety('Totapuri')">🛒 Add to Order</button>
+        </div>
+      </div>
+
+      <div class="variety-card reveal">
+        <div class="variety-img">🧡</div>
+        <div class="variety-body">
+          <div class="variety-origin">Bihar &amp; Uttar Pradesh</div>
+          <div class="variety-name">Langra</div>
+          <p class="variety-desc">Stays green even when ripe. Juicy, tangy-sweet flavour beloved across North and East India.</p>
+          <div class="variety-price">₹379 <span class="variety-unit">/ dozen</span></div>
+          <button class="add-btn" onclick="selectVariety('Langra')">🛒 Add to Order</button>
+        </div>
+      </div>
+
+      <div class="variety-card reveal">
+        <div class="variety-img">⭐</div>
+        <div class="variety-body">
+          <div class="variety-origin">Sindh region</div>
+          <div class="variety-name">Sindhri</div>
+          <p class="variety-desc">Large, aromatic, and exceptionally sweet. Known as the "King of Mangoes" in Pakistan — now available in India.</p>
+          <div class="variety-price">₹649 <span class="variety-unit">/ dozen</span></div>
+          <button class="add-btn" onclick="selectVariety('Sindhri')">🛒 Add to Order</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="container">
+    <div class="about-grid">
+      <div class="about-visual reveal">
+        <span class="about-emoji">🌳</span>
+        <p class="about-tagline">"From our trees to your table"</p>
+      </div>
+      <div class="about-content reveal">
+        <h3>Grown with Love,<br>Delivered with Care</h3>
+        <p>We partner directly with generations-old mango farmers across India — from the hills of Ratnagiri to the plains of Uttar Pradesh. No middlemen, no compromise.</p>
+        <p>Every mango is hand-selected at peak ripeness, carefully packed, and dispatched within 24 hours of harvest so you get the freshest fruit possible.</p>
+        <div class="about-features">
+          <div class="about-feat">
+            <div class="about-feat-icon">🌾</div>
+            <div class="about-feat-title">Farm Direct</div>
+            <div class="about-feat-desc">Sourced straight from farmers you can trust</div>
+          </div>
+          <div class="about-feat">
+            <div class="about-feat-icon">🚫</div>
+            <div class="about-feat-title">No Chemicals</div>
+            <div class="about-feat-desc">No artificial ripening, no preservatives</div>
+          </div>
+          <div class="about-feat">
+            <div class="about-feat-icon">🎁</div>
+            <div class="about-feat-title">Gift Ready</div>
+            <div class="about-feat-desc">Premium gift boxes for festivals &amp; occasions</div>
+          </div>
+          <div class="about-feat">
+            <div class="about-feat-icon">⚡</div>
+            <div class="about-feat-title">Fast Delivery</div>
+            <div class="about-feat-desc">Delivered in 1-3 days across India</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DELIVERY INFO -->
+<section id="delivery">
+  <div class="container">
+    <p class="section-label">Delivery</p>
+    <h2 class="section-title">Fresh to Your Doorstep</h2>
+    <p class="section-sub">We ship across India with temperature-controlled packaging to ensure your mangoes arrive perfect.</p>
+    <div class="delivery-grid">
+      <div class="delivery-card reveal">
+        <div class="delivery-icon">📦</div>
+        <h3>Standard Delivery</h3>
+        <p>Delivered in 2–3 business days. Available across all major Indian cities and towns via our logistics partners.</p>
+        <span class="delivery-tag">₹79 Shipping</span>
+      </div>
+      <div class="delivery-card reveal">
+        <div class="delivery-icon">⚡</div>
+        <h3>Express Delivery</h3>
+        <p>Next-day delivery available in metro cities including Mumbai, Delhi, Bangalore, Chennai, Hyderabad, and Pune.</p>
+        <span class="delivery-tag">₹149 Shipping</span>
+      </div>
+      <div class="delivery-card reveal">
+        <div class="delivery-icon">🎁</div>
+        <h3>Free Shipping</h3>
+        <p>Orders above ₹999 get free standard delivery anywhere in India. Perfect for stocking up for the whole family!</p>
+        <span class="delivery-tag">Free above ₹999</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- REVIEWS -->
+<section id="reviews">
+  <div class="container">
+    <p class="section-label">Customer Love</p>
+    <h2 class="section-title">What Our Customers Say</h2>
+    <p class="section-sub">Thousands of happy customers enjoy our mangoes every season.</p>
+    <div class="reviews-grid">
+      <div class="review-card reveal">
+        <div class="stars">★★★★★</div>
+        <p class="review-text">"The Alphonso mangoes were absolutely incredible — the best I've had outside of Maharashtra. They arrived perfectly ripe and packed beautifully."</p>
+        <div class="reviewer">
+          <div class="reviewer-avatar">👩</div>
+          <div>
+            <div class="reviewer-name">Priya Sharma</div>
+            <div class="reviewer-loc">New Delhi</div>
+          </div>
+        </div>
+      </div>
+      <div class="review-card reveal">
+        <div class="stars">★★★★★</div>
+        <p class="review-text">"Ordered a Kesar box for my parents and they were thrilled! No artificial ripening, naturally sweet. Will definitely order again next season."</p>
+        <div class="reviewer">
+          <div class="reviewer-avatar">👨</div>
+          <div>
+            <div class="reviewer-name">Rohan Mehta</div>
+            <div class="reviewer-loc">Bangalore</div>
+          </div>
+        </div>
+      </div>
+      <div class="review-card reveal">
+        <div class="stars">★★★★★</div>
+        <p class="review-text">"Bought the mixed variety box for Dussehra gifting and everyone loved it. Premium packaging, fresh mangoes. Highly recommend!"</p>
+        <div class="reviewer">
+          <div class="reviewer-avatar">👩</div>
+          <div>
+            <div class="reviewer-name">Ananya Iyer</div>
+            <div class="reviewer-loc">Chennai</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ORDER FORM -->
+<section id="order" style="background: white;">
+  <div class="container">
+    <p class="section-label">Place Your Order</p>
+    <h2 class="section-title">Order Fresh Mangoes</h2>
+    <p class="section-sub">Fill in the form below and we'll confirm your order via WhatsApp within a few hours.</p>
+    <div class="order-wrap">
+      <div id="order-form-wrap">
+        <form id="order-form">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="f-name">Your Name</label>
+              <input type="text" id="f-name" placeholder="e.g. Rahul Gupta" required>
+            </div>
+            <div class="form-group">
+              <label for="f-phone">WhatsApp Number</label>
+              <input type="tel" id="f-phone" placeholder="+91 98765 43210" required>
+            </div>
+            <div class="form-group">
+              <label for="f-variety">Mango Variety</label>
+              <div class="mango-select">
+                <select id="f-variety" required>
+                  <option value="">Select a variety…</option>
+                  <option value="Alphonso (Hapus)">🥭 Alphonso (Hapus) — ₹599/dozen</option>
+                  <option value="Kesar">🟡 Kesar — ₹499/dozen</option>
+                  <option value="Dasheri">🌿 Dasheri — ₹349/dozen</option>
+                  <option value="Totapuri">🍋 Totapuri — ₹249/dozen</option>
+                  <option value="Langra">🧡 Langra — ₹379/dozen</option>
+                  <option value="Sindhri">⭐ Sindhri — ₹649/dozen</option>
+                  <option value="Mixed Variety Box">🎁 Mixed Variety Box</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="f-qty">Quantity</label>
+              <select id="f-qty" required>
+                <option value="">How many dozens?</option>
+                <option value="1 dozen">1 dozen</option>
+                <option value="2 dozens">2 dozens</option>
+                <option value="3 dozens">3 dozens</option>
+                <option value="5 dozens">5 dozens</option>
+                <option value="10 dozens">10 dozens (bulk)</option>
+              </select>
+            </div>
+            <div class="form-group full">
+              <label for="f-address">Delivery Address</label>
+              <textarea id="f-address" placeholder="House/flat no., street, area, city, pincode…" required></textarea>
+            </div>
+            <div class="form-group full">
+              <label for="f-note">Special Note (optional)</label>
+              <input type="text" id="f-note" placeholder="e.g. Please ripen for 2 days before delivery, gift wrapping…">
+            </div>
+          </div>
+          <button type="submit" class="submit-btn">🥭 Place Order via WhatsApp</button>
+          <p class="whatsapp-hint">We'll send you an order confirmation on <strong>WhatsApp</strong> within a few hours</p>
+        </form>
+      </div>
+      <div id="form-success">
+        <div class="success-icon">🎉</div>
+        <h3>Order Received!</h3>
+        <p>Thanks! We'll confirm your order on WhatsApp shortly. Get ready for some amazing mangoes!</p>
+        <button class="btn-primary" style="margin-top: 20px;" onclick="resetForm()">Place Another Order</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">🥭 All Kind of Mango</div>
+  <p class="footer-tagline">Bringing India's finest mangoes to your doorstep since 2022</p>
+  <div class="footer-links">
+    <a href="#varieties">Varieties</a>
+    <a href="#about">Our Farm</a>
+    <a href="#delivery">Delivery</a>
+    <a href="#order">Order Now</a>
+    <a href="#reviews">Reviews</a>
+  </div>
+  <p class="footer-copy">© 2024 All Kind of Mango. All rights reserved. Made with ❤️ in India.</p>
+</footer>
+
+<script>
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 80);
+      }
+    });
+  }, { threshold: 0.1 });
+  reveals.forEach(r => observer.observe(r));
+
+  // Select variety from card
+  function selectVariety(name) {
+    const sel = document.getElementById('f-variety');
+    for (const opt of sel.options) {
+      if (opt.value === name) { sel.value = name; break; }
+    }
+    document.getElementById('order').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  // Order form -> WhatsApp
+  document.getElementById('order-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const name    = document.getElementById('f-name').value.trim();
+    const phone   = document.getElementById('f-phone').value.trim();
+    const variety = document.getElementById('f-variety').value;
+    const qty     = document.getElementById('f-qty').value;
+    const address = document.getElementById('f-address').value.trim();
+    const note    = document.getElementById('f-note').value.trim();
+
+    const msg = [
+      '🥭 *New Mango Order — All Kind of Mango*',
+      '',
+      `👤 *Name:* ${name}`,
+      `📱 *Phone:* ${phone}`,
+      `🥭 *Variety:* ${variety}`,
+      `📦 *Quantity:* ${qty}`,
+      `📍 *Address:* ${address}`,
+      note ? `📝 *Note:* ${note}` : '',
+    ].filter(Boolean).join('\n');
+
+    // Replace with your WhatsApp number
+    const waNumber = '919876543210';
+    const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`;
+    window.open(waUrl, '_blank');
+
+    document.getElementById('order-form-wrap').style.display = 'none';
+    document.getElementById('form-success').style.display = 'block';
+  });
+
+  function resetForm() {
+    document.getElementById('order-form').reset();
+    document.getElementById('order-form-wrap').style.display = 'block';
+    document.getElementById('form-success').style.display = 'none';
+  }
+
+  // Smooth nav link scroll
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const target = document.querySelector(a.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  });
+</script>
+</body>
+</html>
