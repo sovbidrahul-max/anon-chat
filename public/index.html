@@ -1,414 +1,436 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Anon Chat</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: linear-gradient(135deg, #1a1a2e 0%, #2d1b3d 100%);
-    color: #eee; min-height: 100vh; display: flex; flex-direction: column;
-  }
-  .container { max-width: 500px; margin: 0 auto; width: 100%; flex: 1; display: flex; flex-direction: column; padding: 20px; }
-  .screen { display: none; flex: 1; flex-direction: column; }
-  .screen.active { display: flex; }
-  h1 { text-align: center; margin-bottom: 8px; font-size: 32px; color: #ff6b9d; }
-  h2 { text-align: center; margin-bottom: 12px; }
-  .subtitle { text-align: center; color: #aaa; margin-bottom: 28px; font-size: 14px; }
-  .label { font-size: 13px; color: #aaa; margin-bottom: 8px; margin-top: 20px; text-transform: uppercase; letter-spacing: 0.5px; }
-  .gender-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .gender-btn { background: #2a2a3e; border: 2px solid transparent; color: #eee; padding: 28px 16px; border-radius: 14px; font-size: 18px; cursor: pointer; transition: all 0.2s; }
-  .gender-btn:hover { background: #33334a; }
-  .gender-btn.selected { border-color: #ff6b9d; background: #3a2a3e; box-shadow: 0 0 0 4px rgba(255,107,157,0.15); }
-  input[type="text"] { width: 100%; background: #2a2a3e; border: 1px solid #444; color: #eee; padding: 14px; border-radius: 10px; font-size: 16px; }
-  input[type="text"]:focus { outline: none; border-color: #ff6b9d; }
-  .city-wrap { position: relative; }
-  .suggestions { position: absolute; top: 100%; left: 0; right: 0; background: #2a2a3e; border: 1px solid #444; border-top: none; max-height: 220px; overflow-y: auto; border-radius: 0 0 10px 10px; z-index: 10; display: none; }
-  .suggestion { padding: 12px 14px; cursor: pointer; border-bottom: 1px solid #333; font-size: 14px; }
-  .suggestion:last-child { border-bottom: none; }
-  .suggestion:hover { background: #33334a; }
-  .btn-primary { background: #ff6b9d; color: white; border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 28px; width: 100%; transition: background 0.2s; }
-  .btn-primary:hover:not(:disabled) { background: #ff5a8e; }
-  .btn-primary:disabled { background: #555; cursor: not-allowed; opacity: 0.6; }
-  .btn-secondary { background: #2a2a3e; color: #eee; border: 1px solid #444; padding: 14px; border-radius: 12px; font-size: 15px; cursor: pointer; }
-  .btn-secondary:hover { background: #33334a; }
-  .btn-danger { background: #d9534f; color: white; border: none; padding: 14px; border-radius: 12px; font-size: 15px; cursor: pointer; }
-  .btn-danger:hover { background: #c9302c; }
-  .spinner { width: 60px; height: 60px; border: 4px solid #2a2a3e; border-top-color: #ff6b9d; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 24px; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .chat-wrap { flex: 1; display: flex; flex-direction: column; }
-  .chat-header { background: #2a2a3e; padding: 14px 18px; border-radius: 12px 12px 0 0; display: flex; justify-content: space-between; align-items: center; }
-  .chat-header .who { font-weight: 600; }
-  .chat-header .city { font-size: 12px; color: #aaa; }
-  .timer { font-size: 18px; font-weight: 700; color: #ff6b9d; font-variant-numeric: tabular-nums; }
-  .timer.warning { color: #f0ad4e; animation: pulse 1s infinite; }
-  @keyframes pulse { 50% { opacity: 0.5; } }
-  .chat-messages { flex: 1; overflow-y: auto; padding: 16px; background: #20203a; min-height: 320px; display: flex; flex-direction: column; gap: 6px; }
-  .msg { max-width: 75%; padding: 10px 14px; border-radius: 16px; word-wrap: break-word; line-height: 1.4; }
-  .msg.me { background: #ff6b9d; margin-left: auto; border-bottom-right-radius: 4px; }
-  .msg.them { background: #3a3a55; border-bottom-left-radius: 4px; }
-  .msg.system { background: transparent; color: #888; text-align: center; max-width: 100%; font-size: 13px; font-style: italic; padding: 4px; align-self: center; }
-  .chat-input { display: flex; gap: 8px; padding: 12px; background: #2a2a3e; border-radius: 0 0 12px 12px; }
-  .chat-input input { flex: 1; padding: 12px; }
-  .chat-input button { background: #ff6b9d; color: white; border: none; padding: 0 22px; border-radius: 10px; cursor: pointer; font-weight: 600; }
-  .chat-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
-  .decision-box { background: #2a2a3e; padding: 22px; border-radius: 12px; text-align: center; margin-top: 12px; border: 1px solid #ff6b9d; }
-  .decision-box h3 { margin-bottom: 8px; }
-  .decision-box p { color: #aaa; font-size: 14px; margin-bottom: 16px; }
-  .decision-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .decision-btns .btn-primary { margin: 0; }
-  .ended-box { text-align: center; padding: 40px 20px; margin: auto; }
-  .ended-box h2 { margin-bottom: 12px; }
-  .quota { color: #aaa; font-size: 13px; text-align: center; margin-top: 12px; }
-  .home-link { margin-top: 12px; }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AURA — Fine Art by Rahul</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
 </head>
 <body>
-<div class="container">
 
-  <!-- LANDING -->
-  <div id="screen-landing" class="screen active">
-    <h1>💬 Anon Chat</h1>
-    <p class="subtitle">Anonymous 1-minute chats with a stranger</p>
+  <!-- CURSOR -->
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-follower" id="cursorFollower"></div>
 
-    <div class="label">I am</div>
-    <div class="gender-options">
-      <button class="gender-btn" data-gender="male">👨 Male</button>
-      <button class="gender-btn" data-gender="female">👩 Female</button>
+  <!-- LOADING SCREEN -->
+  <div class="loader" id="loader">
+    <div class="loader-inner">
+      <span class="loader-letter" style="--i:0">A</span>
+      <span class="loader-letter" style="--i:1">U</span>
+      <span class="loader-letter" style="--i:2">R</span>
+      <span class="loader-letter" style="--i:3">A</span>
     </div>
-
-    <button class="btn-primary" id="start-btn" disabled>Find a match</button>
-    <p class="quota" id="quota-info"></p>
+    <div class="loader-bar"><div class="loader-progress" id="loaderProgress"></div></div>
   </div>
 
-  <!-- SEARCHING -->
-  <div id="screen-searching" class="screen">
-    <div style="margin: auto; text-align: center;">
-      <div class="spinner"></div>
-      <h2>Finding someone...</h2>
-      <p class="subtitle" style="margin-top: 8px;">Looking for an available stranger</p>
-      <button class="btn-secondary" id="cancel-btn" style="margin-top: 24px;">Cancel</button>
+  <!-- CART DRAWER -->
+  <div class="cart-overlay" id="cartOverlay"></div>
+  <aside class="cart-drawer" id="cartDrawer">
+    <div class="cart-header">
+      <h3>Your Collection</h3>
+      <button class="cart-close" id="cartClose" aria-label="Close cart">&#x2715;</button>
     </div>
-  </div>
-
-  <!-- CHAT -->
-  <div id="screen-chat" class="screen">
-    <div class="chat-wrap">
-      <div class="chat-header">
-        <div class="who">👤 Stranger</div>
-        <span class="timer" id="timer">01:00</span>
-      </div>
-      <div class="chat-messages" id="messages"></div>
-      <div class="chat-input">
-        <input type="text" id="msg-input" placeholder="Say hi..." maxlength="500">
-        <button id="send-btn">Send</button>
+    <div class="cart-items" id="cartItems">
+      <div class="cart-empty">
+        <div class="cart-empty-icon">&#x1F5BC;</div>
+        <p>Your collection is empty</p>
+        <span>Discover original artworks below</span>
       </div>
     </div>
-    <div class="chat-actions">
-      <button class="btn-secondary" id="skip-btn">⏭️ Skip</button>
-      <button class="btn-danger" id="report-btn">🚩 Report</button>
+    <div class="cart-footer" id="cartFooter" style="display:none">
+      <div class="cart-total">
+        <span>Total</span>
+        <span id="cartTotal">$0</span>
+      </div>
+      <button class="btn-primary btn-full">Proceed to Checkout</button>
+      <p class="cart-note">Free worldwide shipping on all original artworks</p>
     </div>
+  </aside>
 
-    <div class="decision-box" id="decision-box" style="display: none;">
-      <h3>⏰ Time's up!</h3>
-      <p>Both must tap Continue to keep chatting</p>
-      <div class="decision-btns">
-        <button class="btn-primary" id="continue-btn">Continue</button>
-        <button class="btn-secondary" id="decision-skip-btn">Skip</button>
+  <!-- NAVIGATION -->
+  <nav class="nav" id="nav">
+    <a href="#" class="nav-logo">AURA</a>
+    <ul class="nav-links">
+      <li><a href="#collections">Collections</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#process">Process</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <button class="cart-btn" id="cartBtn" aria-label="Open cart">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/>
+        <path d="M16 10a4 4 0 01-8 0"/>
+      </svg>
+      <span class="cart-count" id="cartCount" style="display:none">0</span>
+    </button>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+      <span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu" id="mobileMenu">
+    <ul>
+      <li><a href="#collections" class="mobile-link">Collections</a></li>
+      <li><a href="#about" class="mobile-link">About</a></li>
+      <li><a href="#process" class="mobile-link">Process</a></li>
+      <li><a href="#contact" class="mobile-link">Contact</a></li>
+    </ul>
+  </div>
+
+  <!-- HERO -->
+  <section class="hero" id="hero">
+    <div class="hero-bg">
+      <div class="hero-blob blob-1"></div>
+      <div class="hero-blob blob-2"></div>
+      <div class="hero-blob blob-3"></div>
+    </div>
+    <div class="hero-content">
+      <p class="hero-eyebrow reveal-up">Original Fine Art</p>
+      <h1 class="hero-title reveal-up" style="--delay:.1s">
+        <span>Where Emotion</span>
+        <em>Becomes</em>
+        <span>Canvas</span>
+      </h1>
+      <p class="hero-sub reveal-up" style="--delay:.2s">Handcrafted paintings, sculptures &amp; mixed media — each piece a singular expression of the human experience.</p>
+      <div class="hero-actions reveal-up" style="--delay:.3s">
+        <a href="#collections" class="btn-primary">Explore Collections</a>
+        <a href="#about" class="btn-ghost">Meet the Artist</a>
+      </div>
+    </div>
+    <div class="hero-scroll">
+      <div class="scroll-line"></div>
+      <span>Scroll</span>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><span class="stat-num" data-target="340">0</span><span class="stat-label">Artworks Sold</span></div>
+      <div class="stat"><span class="stat-num" data-target="42">0</span><span class="stat-label">Countries</span></div>
+      <div class="stat"><span class="stat-num" data-target="18">0</span><span class="stat-label">Exhibitions</span></div>
+    </div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="marquee-wrap">
+    <div class="marquee-track">
+      <span>Painting</span><span class="dot">&#x2022;</span>
+      <span>Sculpture</span><span class="dot">&#x2022;</span>
+      <span>Photography</span><span class="dot">&#x2022;</span>
+      <span>Digital Art</span><span class="dot">&#x2022;</span>
+      <span>Mixed Media</span><span class="dot">&#x2022;</span>
+      <span>Watercolour</span><span class="dot">&#x2022;</span>
+      <span>Oil &amp; Acrylic</span><span class="dot">&#x2022;</span>
+      <span>Painting</span><span class="dot">&#x2022;</span>
+      <span>Sculpture</span><span class="dot">&#x2022;</span>
+      <span>Photography</span><span class="dot">&#x2022;</span>
+      <span>Digital Art</span><span class="dot">&#x2022;</span>
+      <span>Mixed Media</span><span class="dot">&#x2022;</span>
+      <span>Watercolour</span><span class="dot">&#x2022;</span>
+      <span>Oil &amp; Acrylic</span><span class="dot">&#x2022;</span>
+    </div>
+  </div>
+
+  <!-- FEATURED -->
+  <section class="featured" id="featured">
+    <div class="container">
+      <div class="section-header reveal-up">
+        <p class="section-eyebrow">Curator's Pick</p>
+        <h2 class="section-title">Featured Works</h2>
+      </div>
+      <div class="featured-grid">
+        <article class="featured-card featured-card--large reveal-up" style="--delay:.1s" data-id="f1">
+          <div class="featured-img" style="background:linear-gradient(135deg,#1a0533 0%,#6b21a8 50%,#f59e0b 100%)">
+            <div class="art-texture"></div>
+            <div class="featured-overlay">
+              <button class="quick-add" data-id="f1">Add to Collection</button>
+              <button class="quick-view" data-id="f1">Quick View</button>
+            </div>
+          </div>
+          <div class="featured-info">
+            <span class="art-tag">Oil on Canvas</span>
+            <h3>Violet Reverie</h3>
+            <p>A dreamlike journey through abstract purple landscapes, capturing the liminal space between consciousness and dreams.</p>
+            <div class="art-meta">
+              <span class="art-size">120 &times; 90 cm</span>
+              <span class="art-price">$2,400</span>
+            </div>
+          </div>
+        </article>
+        <div class="featured-side">
+          <article class="featured-card reveal-up" style="--delay:.2s" data-id="f2">
+            <div class="featured-img" style="background:linear-gradient(135deg,#0f2027 0%,#203a43 50%,#2c5364 100%)">
+              <div class="art-texture"></div>
+              <div class="featured-overlay">
+                <button class="quick-add" data-id="f2">Add to Collection</button>
+                <button class="quick-view" data-id="f2">Quick View</button>
+              </div>
+            </div>
+            <div class="featured-info">
+              <span class="art-tag">Acrylic</span>
+              <h3>Ocean Depth</h3>
+              <div class="art-meta">
+                <span class="art-size">80 &times; 60 cm</span>
+                <span class="art-price">$1,650</span>
+              </div>
+            </div>
+          </article>
+          <article class="featured-card reveal-up" style="--delay:.3s" data-id="f3">
+            <div class="featured-img" style="background:linear-gradient(135deg,#ff6b6b 0%,#feca57 50%,#ff9ff3 100%)">
+              <div class="art-texture"></div>
+              <div class="featured-overlay">
+                <button class="quick-add" data-id="f3">Add to Collection</button>
+                <button class="quick-view" data-id="f3">Quick View</button>
+              </div>
+            </div>
+            <div class="featured-info">
+              <span class="art-tag">Mixed Media</span>
+              <h3>Euphoria</h3>
+              <div class="art-meta">
+                <span class="art-size">70 &times; 70 cm</span>
+                <span class="art-price">$1,200</span>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COLLECTIONS -->
+  <section class="collections" id="collections">
+    <div class="container">
+      <div class="section-header reveal-up">
+        <p class="section-eyebrow">Browse All</p>
+        <h2 class="section-title">The Collection</h2>
+      </div>
+      <div class="filter-bar reveal-up">
+        <button class="filter-btn active" data-filter="all">All Works</button>
+        <button class="filter-btn" data-filter="painting">Paintings</button>
+        <button class="filter-btn" data-filter="watercolour">Watercolour</button>
+        <button class="filter-btn" data-filter="digital">Digital Art</button>
+        <button class="filter-btn" data-filter="sculpture">Sculpture</button>
+        <button class="filter-btn" data-filter="photography">Photography</button>
+      </div>
+      <div class="art-grid" id="artGrid"></div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="about" id="about">
+    <div class="about-img-col">
+      <div class="about-img-wrap">
+        <div class="about-img-placeholder">
+          <svg viewBox="0 0 200 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="200" height="240" rx="4" fill="#1a1a1a"/>
+            <circle cx="100" cy="85" r="38" fill="#2a2a2a"/>
+            <ellipse cx="100" cy="200" rx="65" ry="50" fill="#2a2a2a"/>
+            <text x="100" y="95" text-anchor="middle" fill="#555" font-size="40" font-family="serif">&#9786;</text>
+          </svg>
+        </div>
+        <div class="about-accent-ring"></div>
+        <div class="about-badge">
+          <span>15</span>
+          <small>Years of Art</small>
+        </div>
+      </div>
+    </div>
+    <div class="about-content">
+      <p class="section-eyebrow reveal-up">The Artist</p>
+      <h2 class="section-title reveal-up" style="--delay:.1s">Creating from the <em>soul</em>, not the mind</h2>
+      <div class="about-body reveal-up" style="--delay:.2s">
+        <p>My work lives at the intersection of raw emotion and deliberate technique. Each canvas is a conversation — between colour and silence, between what is seen and what is felt.</p>
+        <p>Trained at the Royal Academy and influenced by time spent in Morocco, Japan, and the Scottish Highlands, I bring a global sensitivity to deeply personal subjects.</p>
+      </div>
+      <div class="about-tags reveal-up" style="--delay:.3s">
+        <span>Oil on Canvas</span><span>Watercolour</span><span>Mixed Media</span><span>Digital</span>
+      </div>
+      <a href="#contact" class="btn-primary reveal-up" style="--delay:.4s">Commission a Piece</a>
+    </div>
+  </section>
+
+  <!-- PROCESS -->
+  <section class="process" id="process">
+    <div class="container">
+      <div class="section-header reveal-up">
+        <p class="section-eyebrow">Behind the Art</p>
+        <h2 class="section-title">How It Works</h2>
+      </div>
+      <div class="process-grid">
+        <div class="process-step reveal-up" style="--delay:.1s">
+          <div class="step-num">01</div>
+          <h4>Choose &amp; Purchase</h4>
+          <p>Browse the collection, select a piece that speaks to you, and purchase securely online. Each work ships with a certificate of authenticity.</p>
+        </div>
+        <div class="process-step reveal-up" style="--delay:.2s">
+          <div class="step-num">02</div>
+          <h4>Custom Framing</h4>
+          <p>Opt for professional archival framing handled in-studio. We'll match the frame to the artwork's character and your décor.</p>
+        </div>
+        <div class="process-step reveal-up" style="--delay:.3s">
+          <div class="step-num">03</div>
+          <h4>Worldwide Delivery</h4>
+          <p>Every piece is hand-rolled or crate-packed with museum-grade materials. Tracked, insured, and delivered to your door — anywhere in the world.</p>
+        </div>
+        <div class="process-step reveal-up" style="--delay:.4s">
+          <div class="step-num">04</div>
+          <h4>Commission Work</h4>
+          <p>Want something created just for you? Contact me to discuss a bespoke commission — a portrait, a landscape, or an abstract born from your story.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section class="testimonials">
+    <div class="container">
+      <div class="section-header reveal-up">
+        <p class="section-eyebrow">Collectors Say</p>
+        <h2 class="section-title">Words of Love</h2>
+      </div>
+      <div class="testimonial-track" id="testimonialTrack">
+        <div class="testimonial-slide">
+          <blockquote>"Violet Reverie arrived and I burst into tears. The colour, the texture — it's everything I didn't know I needed. Best purchase of my life."</blockquote>
+          <cite>— Ananya S., Mumbai</cite>
+        </div>
+        <div class="testimonial-slide">
+          <blockquote>"The commission exceeded every expectation. The artist captured my grandmother's spirit in a way photographs never could."</blockquote>
+          <cite>— Thomas W., Berlin</cite>
+        </div>
+        <div class="testimonial-slide">
+          <blockquote>"Three pieces and counting. The quality, the packaging, the personal note included — this is art collecting done right."</blockquote>
+          <cite>— Maya L., New York</cite>
+        </div>
+      </div>
+      <div class="testimonial-dots" id="testimonialDots">
+        <button class="t-dot active" data-idx="0"></button>
+        <button class="t-dot" data-idx="1"></button>
+        <button class="t-dot" data-idx="2"></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="contact" id="contact">
+    <div class="container">
+      <div class="contact-grid">
+        <div class="contact-left reveal-up">
+          <p class="section-eyebrow">Get in Touch</p>
+          <h2 class="section-title">Let's Create Together</h2>
+          <p>Whether you're commissioning a bespoke piece, enquiring about an existing work, or simply want to talk art — I'd love to hear from you.</p>
+          <div class="contact-info">
+            <a href="mailto:sovbidrahul@gmail.com">sovbidrahul@gmail.com</a>
+            <div class="social-links">
+              <a href="#" aria-label="Instagram">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+              </a>
+              <a href="#" aria-label="X / Twitter">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+              </a>
+              <a href="#" aria-label="Pinterest">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.24 2.65 7.86 6.39 9.29-.09-.78-.17-1.98.03-2.83.19-.77 1.27-5.38 1.27-5.38s-.32-.65-.32-1.61c0-1.51.88-2.64 1.97-2.64.93 0 1.38.7 1.38 1.54 0 .94-.6 2.34-.91 3.64-.26 1.09.54 1.97 1.6 1.97 1.92 0 3.4-2.02 3.4-4.94 0-2.58-1.86-4.39-4.52-4.39-3.08 0-4.89 2.31-4.89 4.7 0 .93.36 1.93.8 2.47.09.11.1.2.07.31-.08.34-.26 1.09-.3 1.24-.05.2-.17.24-.38.14-1.39-.65-2.26-2.68-2.26-4.32 0-3.51 2.55-6.74 7.35-6.74 3.86 0 6.86 2.75 6.86 6.42 0 3.83-2.41 6.91-5.76 6.91-1.13 0-2.19-.59-2.55-1.28l-.69 2.58c-.25.97-.93 2.18-1.39 2.92A10 10 0 0022 12c0-5.52-4.48-10-10-10z"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+        <form class="contact-form reveal-up" style="--delay:.2s" id="contactForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="fname">First Name</label>
+              <input type="text" id="fname" placeholder="Jane" required />
+            </div>
+            <div class="form-group">
+              <label for="lname">Last Name</label>
+              <input type="text" id="lname" placeholder="Doe" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="femail">Email</label>
+            <input type="email" id="femail" placeholder="jane@example.com" required />
+          </div>
+          <div class="form-group">
+            <label for="subject">I'm interested in&hellip;</label>
+            <select id="subject">
+              <option value="">Select a topic</option>
+              <option>Purchasing an existing work</option>
+              <option>Commissioning a new piece</option>
+              <option>Exhibition / Gallery inquiry</option>
+              <option>Press / Media</option>
+              <option>General inquiry</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="message">Message</label>
+            <textarea id="message" rows="4" placeholder="Tell me about your vision&hellip;" required></textarea>
+          </div>
+          <button type="submit" class="btn-primary btn-full">Send Message</button>
+          <div class="form-success" id="formSuccess" style="display:none">
+            &#x2713; Message sent! I'll be in touch within 48 hours.
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <p class="footer-logo">AURA</p>
+        <p>Original fine art, handcrafted<br>with intention and soul.</p>
+      </div>
+      <div class="footer-nav">
+        <p class="footer-heading">Navigate</p>
+        <a href="#collections">Collections</a>
+        <a href="#about">About</a>
+        <a href="#process">Process</a>
+        <a href="#contact">Contact</a>
+      </div>
+      <div class="footer-nav">
+        <p class="footer-heading">Policies</p>
+        <a href="#">Shipping Policy</a>
+        <a href="#">Returns &amp; Refunds</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Sale</a>
+      </div>
+      <div class="footer-newsletter">
+        <p class="footer-heading">Stay Inspired</p>
+        <p>New works, exhibitions, and stories delivered monthly.</p>
+        <div class="newsletter-form">
+          <input type="email" placeholder="Your email" />
+          <button class="btn-primary">Subscribe</button>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom container">
+      <p>&copy; 2026 AURA Fine Art. All rights reserved.</p>
+      <p>Crafted with passion &#x2764;</p>
+    </div>
+  </footer>
+
+  <!-- ARTWORK MODAL -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal" id="modal">
+      <button class="modal-close" id="modalClose">&#x2715;</button>
+      <div class="modal-img" id="modalImg"></div>
+      <div class="modal-content">
+        <span class="art-tag" id="modalTag"></span>
+        <h2 id="modalTitle"></h2>
+        <p id="modalDesc"></p>
+        <div class="modal-details">
+          <div><small>Medium</small><span id="modalMedium"></span></div>
+          <div><small>Dimensions</small><span id="modalSize"></span></div>
+          <div><small>Year</small><span id="modalYear"></span></div>
+          <div><small>Edition</small><span id="modalEdition">Original, 1 of 1</span></div>
+        </div>
+        <div class="modal-footer">
+          <span class="modal-price" id="modalPrice"></span>
+          <button class="btn-primary" id="modalAddBtn">Add to Collection</button>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- ENDED -->
-  <div id="screen-ended" class="screen">
-    <div class="ended-box">
-      <h2 id="ended-title">Chat ended</h2>
-      <p class="subtitle" id="ended-msg"></p>
-      <button class="btn-primary" id="next-btn">Find next match</button>
-      <button class="btn-secondary home-link" id="home-btn" style="width: 100%;">Back to home</button>
-    </div>
-  </div>
-
-  <!-- PAYWALL -->
-  <div id="screen-paywall" class="screen">
-    <div style="margin: auto; padding: 20px 0; text-align: center; width: 100%;">
-      <h2>💎 Out of matches</h2>
-      <p class="subtitle" style="margin-bottom: 20px;">Pay <strong>₹<span id="pay-price">49</span></strong> via UPI to unlock <span id="pack-size">10</span> more matches</p>
-
-      <div style="background:#fff;display:inline-block;padding:10px;border-radius:14px;margin-bottom:16px;">
-        <img id="qr-img" alt="UPI QR" width="220" height="220" style="display:block;">
-      </div>
-
-      <div style="background:#2a2a3e;border-radius:10px;padding:12px;margin-bottom:14px;font-size:13px;color:#aaa;">
-        UPI ID: <strong id="upi-id" style="color:#eee;user-select:all;">--</strong>
-      </div>
-
-      <a id="upi-link" class="btn-primary" style="display:block;text-decoration:none;text-align:center;margin-top:0;">📱 Pay via UPI app</a>
-
-      <p class="label" style="margin-top:24px;text-align:left;">After paying, paste your UTR / transaction ID</p>
-      <input type="text" id="utr-input" placeholder="e.g. 412345678901" autocomplete="off" maxlength="30">
-      <button class="btn-primary" id="claim-btn">Activate matches</button>
-      <p id="claim-error" style="color:#f0ad4e;margin-top:8px;font-size:13px;min-height:18px;"></p>
-
-      <button class="btn-secondary home-link" id="paywall-home-btn" style="width:100%;margin-top:8px;">Back to home</button>
-    </div>
-  </div>
-
-  <!-- BLOCKED -->
-  <div id="screen-blocked" class="screen">
-    <div class="ended-box">
-      <h2>🚫 Blocked</h2>
-      <p class="subtitle" id="blocked-reason">You have been temporarily blocked.</p>
-    </div>
-  </div>
-</div>
-
-<script src="/socket.io/socket.io.js"></script>
-<script>
-  // Persistent anonymous ID
-  let userId = localStorage.getItem('anonUserId');
-  if (!userId) {
-    userId = (crypto.randomUUID ? crypto.randomUUID() : 'u-' + Math.random().toString(36).slice(2));
-    localStorage.setItem('anonUserId', userId);
-  }
-
-  let selectedGender = null;
-  let socket = null;
-  let timerInterval = null;
-  let timeLeft = 60;
-
-  function showScreen(id) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-  }
-
-  // Gender
-  document.querySelectorAll('.gender-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.gender-btn').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-      selectedGender = btn.dataset.gender;
-      updateStartButton();
-    });
-  });
-
-  function updateStartButton() {
-    document.getElementById('start-btn').disabled = !selectedGender;
-  }
-
-  document.getElementById('start-btn').addEventListener('click', start);
-
-  function start() {
-    connectSocket();
-    socket.emit('register', {
-      userId,
-      gender: selectedGender,
-    });
-    showScreen('screen-searching');
-  }
-
-  function connectSocket() {
-    if (socket && socket.connected) return;
-    socket = io();
-
-    socket.on('searching', () => showScreen('screen-searching'));
-
-    socket.on('matched', (data) => {
-      document.getElementById('messages').innerHTML = '';
-      document.getElementById('decision-box').style.display = 'none';
-      document.getElementById('continue-btn').textContent = 'Continue';
-      document.getElementById('continue-btn').disabled = false;
-      addSystemMsg('You are now connected. Say hi! 👋');
-      startTimer(Math.floor(data.duration / 1000));
-      showScreen('screen-chat');
-    });
-
-    socket.on('message', (m) => addMsg(m.from, m.text));
-
-    socket.on('decision-time', () => {
-      stopTimer();
-      document.getElementById('timer').textContent = '00:00';
-      document.getElementById('decision-box').style.display = 'block';
-      addSystemMsg("⏰ Time's up! Both must tap Continue to keep chatting.");
-    });
-
-    socket.on('continue-pending', () => {
-      const btn = document.getElementById('continue-btn');
-      btn.textContent = 'Waiting for them...';
-      btn.disabled = true;
-    });
-
-    socket.on('extended', () => {
-      document.getElementById('decision-box').style.display = 'none';
-      const t = document.getElementById('timer');
-      t.textContent = '∞';
-      t.classList.remove('warning');
-      addSystemMsg('🎉 Both agreed to continue! Chat freely.');
-    });
-
-    socket.on('session-ended', (d) => {
-      stopTimer();
-      const titles = {
-        skipped: 'Chat ended',
-        reported: 'Chat ended',
-        'time-up': 'Time ran out',
-        disconnected: 'Stranger left',
-      };
-      const msgs = {
-        skipped: 'One of you tapped skip.',
-        reported: 'Report submitted.',
-        'time-up': 'No one chose to continue.',
-        disconnected: 'They disconnected.',
-      };
-      document.getElementById('ended-title').textContent = titles[d.reason] || 'Chat ended';
-      document.getElementById('ended-msg').textContent = msgs[d.reason] || '';
-      showScreen('screen-ended');
-    });
-
-    socket.on('paywall', async (info) => {
-      if (info?.packSize) document.getElementById('pack-size').textContent = info.packSize;
-      if (info?.priceInr) document.getElementById('pay-price').textContent = info.priceInr;
-      try {
-        const pay = await fetch('/api/payment-info').then(r => r.json());
-        document.getElementById('qr-img').src = pay.qrUrl;
-        document.getElementById('upi-id').textContent = pay.upiId;
-        document.getElementById('upi-link').href = pay.upiLink;
-        document.getElementById('pay-price').textContent = pay.priceInr;
-        document.getElementById('pack-size').textContent = pay.packSize;
-      } catch (e) { console.error(e); }
-      document.getElementById('utr-input').value = '';
-      document.getElementById('claim-error').textContent = '';
-      showScreen('screen-paywall');
-    });
-
-    socket.on('blocked', (d) => {
-      document.getElementById('blocked-reason').textContent = d?.reason || 'You have been blocked.';
-      showScreen('screen-blocked');
-    });
-
-    socket.on('match-quota', (q) => {
-      const parts = [`${q.free}/${q.freeMax} free matches today`];
-      if (q.paid > 0) parts.push(`+ ${q.paid} paid`);
-      document.getElementById('quota-info').textContent = parts.join(' ');
-    });
-
-    socket.on('error-msg', (m) => alert(m));
-  }
-
-  // Timer
-  function startTimer(seconds) {
-    timeLeft = seconds;
-    updateTimerDisplay();
-    stopTimer();
-    timerInterval = setInterval(() => {
-      timeLeft--;
-      updateTimerDisplay();
-      if (timeLeft <= 0) stopTimer();
-    }, 1000);
-  }
-  function stopTimer() {
-    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-  }
-  function updateTimerDisplay() {
-    const t = document.getElementById('timer');
-    const m = Math.floor(Math.max(0, timeLeft) / 60).toString().padStart(2, '0');
-    const s = (Math.max(0, timeLeft) % 60).toString().padStart(2, '0');
-    t.textContent = `${m}:${s}`;
-    if (timeLeft <= 10 && timeLeft > 0) t.classList.add('warning');
-    else t.classList.remove('warning');
-  }
-
-  function addMsg(from, text) {
-    const div = document.createElement('div');
-    div.className = `msg ${from}`;
-    div.textContent = text;
-    const m = document.getElementById('messages');
-    m.appendChild(div);
-    m.scrollTop = m.scrollHeight;
-  }
-  function addSystemMsg(text) {
-    const div = document.createElement('div');
-    div.className = 'msg system';
-    div.textContent = text;
-    const m = document.getElementById('messages');
-    m.appendChild(div);
-    m.scrollTop = m.scrollHeight;
-  }
-
-  // Send
-  document.getElementById('send-btn').addEventListener('click', sendMessage);
-  document.getElementById('msg-input').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') sendMessage();
-  });
-  function sendMessage() {
-    const inp = document.getElementById('msg-input');
-    const text = inp.value.trim();
-    if (!text || !socket) return;
-    socket.emit('message', text);
-    inp.value = '';
-  }
-
-  // Action buttons
-  document.getElementById('skip-btn').addEventListener('click', () => socket?.emit('skip'));
-  document.getElementById('decision-skip-btn').addEventListener('click', () => socket?.emit('skip'));
-  document.getElementById('continue-btn').addEventListener('click', () => socket?.emit('continue'));
-  document.getElementById('report-btn').addEventListener('click', () => {
-    if (confirm('Report this user for abusive behavior?')) socket?.emit('report');
-  });
-  document.getElementById('cancel-btn').addEventListener('click', () => {
-    socket?.disconnect();
-    socket = null;
-    showScreen('screen-landing');
-  });
-  document.getElementById('next-btn').addEventListener('click', () => {
-    if (!socket || !socket.connected) connectSocket();
-    socket.emit('next');
-  });
-  document.getElementById('home-btn').addEventListener('click', () => {
-    socket?.disconnect();
-    socket = null;
-    showScreen('screen-landing');
-  });
-
-  document.getElementById('paywall-home-btn').addEventListener('click', () => {
-    socket?.disconnect();
-    socket = null;
-    showScreen('screen-landing');
-  });
-
-  document.getElementById('claim-btn').addEventListener('click', async () => {
-    const btn = document.getElementById('claim-btn');
-    const errEl = document.getElementById('claim-error');
-    const utr = document.getElementById('utr-input').value.trim();
-    errEl.textContent = '';
-    if (utr.length < 8) {
-      errEl.textContent = 'Please paste the full UTR / transaction ID.';
-      return;
-    }
-    btn.disabled = true;
-    btn.textContent = 'Activating...';
-    try {
-      const res = await fetch('/api/claim', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, utr }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Could not activate');
-      document.getElementById('quota-info').textContent =
-        `0/5 free matches today + ${data.paidMatches} paid`;
-      btn.disabled = false;
-      btn.textContent = 'Activate matches';
-      if (!socket || !socket.connected) connectSocket();
-      socket.emit('next');
-    } catch (e) {
-      errEl.textContent = e.message || 'Could not activate';
-      btn.disabled = false;
-      btn.textContent = 'Activate matches';
-    }
-  });
-</script>
+  <script src="app.js"></script>
 </body>
 </html>
